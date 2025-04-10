@@ -4,6 +4,7 @@ __pycache__/
 *.so
 *.vs/
 *.conda/
+*.vscode/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints

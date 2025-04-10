@@ -5,31 +5,46 @@ Created on Mon Apr  7 15:41:44 2025
 @author: vscerra
 """
 
+
+import numpy as np
 import os
 import wfdb
-import numpy as np
+import urllib.request
+from scripts.utils import get_project_path
 
+def download_mitbih(destination="data/raw/mitdb", records=None):
+    import os
+    import urllib.request
 
-def download_mitbih(destination: str = "data/raw", records: list = None):
-    """
-    Download selected records from the MIT-BIH Arrhythmia Database
-    """
     if records is None:
-        # A common subset used in research 
         records = ["100", "101", "102", "103", "104"]
-        
-    os.makedirs(destination, exist_ok = True)
+
+    destination = get_project_path(destination)
+    os.makedirs(destination, exist_ok=True)
+
+    base_url = "https://physionet.org/files/mitdb/1.0.0"
+    extensions = ["hea", "dat", "atr"]
+
     for record in records:
-        wfdb.dl_database("mitdb", dl_dir=destination, records=[record])
-            
-            
+        for ext in extensions:
+            file_name = f"{record}.{ext}"
+            url = f"{base_url}/{file_name}"
+            local_path = os.path.join(destination, file_name)
+            if not os.path.exists(local_path):
+                print(f"Downloading {file_name} → {local_path}")
+                urllib.request.urlretrieve(url, local_path)
+            else:
+                print(f"{file_name} already exists at {local_path}")
+
 
 def load_record(record_id: str, data_path: str = "data/raw"):
     """
     Load an ECG signal and its annotations from a specific record.
     """
     # Ensure path is absolute and correct regardless of where script is run
-    full_path = os.path.abspath(os.path.join(data_path, record_id))
+    from scripts.utils import get_project_path
+
+    full_path = get_project_path(data_path, "mitdb", record_id)
     record = wfdb.rdrecord(full_path)
     annotation = wfdb.rdann(full_path, 'atr')
 

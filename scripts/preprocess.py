@@ -56,6 +56,7 @@ def segment_beats(signal, annotations, fs, window_size_sec = 0.6, pre_peak_ratio
     post_peak = beat_samples - pre_peak
     segments = []
     labels = []
+    indices = []
 
     for i, peak_idx in enumerate(annotations["samples"]):
         start = peak_idx - pre_peak
@@ -68,8 +69,33 @@ def segment_beats(signal, annotations, fs, window_size_sec = 0.6, pre_peak_ratio
         segment = signal[start:end]
         segments.append(segment)
         labels.append(annotations["symbols"][i])
+        indices.append(peak_idx)
 
     segments = np.stack(segments, axis = 0)
-    return segments, labels
+
+    return segments, labels, indices
 
 
+def build_rr_lookup(annotations, fs):
+    """
+    Returns a dict mapping beat sample index -> RR interval
+    """
+    rr_lookup = {}
+    samples = annotations["samples"]
+    for i in range(1, len(samples)):
+        rr = (samples[i] - samples[i - 1]) / fs
+        rr_lookup[samples[i]] = rr # assign RR to the current beat
+
+    return rr_lookup
+
+
+def compute_rr_intervals(annotations, fs):
+    """
+    Compute RR intevals (interbeat intervals, in seconds) from annotation sample indices
+    """
+    sample_indices = np.array(annotations["samples"])
+    rr_intervals = np.diff(sample_indices) / fs # in s
+    # Pad with 0 or NaN to match number of beats
+    rr_intervals = np.insert(rr_intervals, 0, np.nan)
+
+    return rr_intervals

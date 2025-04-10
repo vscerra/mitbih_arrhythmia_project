@@ -120,9 +120,9 @@ def plot_pca_embedding(segments, labels, n_components = 2, max_points = 2000):
     # plot
     plt.figure(figsize = (10, 6))
     scatter = plt.scatter(pca_result[:, 0], pca_result[:, 1],
-                          c = [hash(1) % 20 for l in labels],
+                          c = [hash(l) % 20 for l in labels],
                           cmap = 'tab20',
-                          alpha = 0.6,
+                          alpha = 0.5,
                           s = 10
     )
     plt.title("PCA of ECG Beat Segments")
@@ -138,3 +138,32 @@ def plot_pca_embedding(segments, labels, n_components = 2, max_points = 2000):
                           markersize = 6, label = l) for l in unique_labels]
     plt.legend(handles = handles, title = "Beat Types", bbox_to_anchor = (1.05, 1), loc = "upper left")
     plt.show()
+
+
+def plot_rr_intervals(rr_intervals, labels, normal_label = "N"):
+    """
+    Plot RR intervals over beat index, color-coded by whether the beat is 'normal' or 'abnormal'. 
+    Skips the first NaN RR interval
+    """
+    rr_valid = rr_intervals[1:]
+    label_valid = labels[1:len(rr_valid)+1] # trim labels to match
+
+    if len(label_valid) != len(rr_valid):
+        raise ValueError(f"Mismatch after trimming: RR = {len(rr_valid)}, Labels = {len(label_valid)}")
+
+    is_normal = np.array([label == normal_label for label in label_valid])
+    is_abnormal = ~is_normal
+
+    x = np.arange(1, len(rr_valid)+1)
+
+    plt.figure(figsize=(14, 4))
+    plt.plot(x[is_normal], rr_valid[is_normal], 'go', label='Normal', alpha=0.7)
+    plt.plot(x[is_abnormal], rr_valid[is_abnormal], 'ro', label='Abnormal', alpha=0.7)
+    plt.title("RR Intervals Over Time (Color-coded by Beat Type)")
+    plt.xlabel("Beat Index")
+    plt.ylabel("RR Interval (s)")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
