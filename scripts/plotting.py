@@ -11,7 +11,7 @@ def plot_ecg_segment(signal, annotations, fs, start_sec = 0, duration_sec = 10):
     times = np.arange(start_idx, end_idx) / fs
     segment = signal[start_idx:end_idx, 0] # lead 0
 
-    fig, ax = plt.subplots(figsize = (15,4))
+    fig, ax = plt.subplots(figsize = (10,4))
     ax.plot(times, segment, label = "ECG Signal")
 
     # overlay annotations within this window
@@ -39,7 +39,7 @@ def plot_frequency_spectrum(sig, fs, max_freq = 1000, channel = 0, title = "Freq
 
     mask = (xf >= 0) & (xf <= max_freq)
 
-    plt.figure(figsize = (12, 4))
+    plt.figure(figsize = (10, 4))
     plt.plot(xf[mask], np.abs(yf[mask]))
     plt.title(title)
     plt.xlabel("Frequency (Hz)")
@@ -94,7 +94,7 @@ def plot_label_distribution(label_counts, title = "Beat Annotation Frequencies")
     plt.show()
 
 
-def plot_pca_embedding(segments, labels, n_components = 2, max_points = 2000):
+def plot_pca_embedding(segments, labels, n_components = 2, max_points = 11000):
     """
     Flatten the beats and visualize PCA projection with labels
     """
@@ -156,7 +156,7 @@ def plot_rr_intervals(rr_intervals, labels, normal_label = "N"):
 
     x = np.arange(1, len(rr_valid)+1)
 
-    plt.figure(figsize=(14, 4))
+    plt.figure(figsize=(10, 6))
     plt.plot(x[is_normal], rr_valid[is_normal], 'go', label='Normal', alpha=0.7)
     plt.plot(x[is_abnormal], rr_valid[is_abnormal], 'ro', label='Abnormal', alpha=0.7)
     plt.title("RR Intervals Over Time (Color-coded by Beat Type)")
@@ -164,6 +164,43 @@ def plot_rr_intervals(rr_intervals, labels, normal_label = "N"):
     plt.ylabel("RR Interval (s)")
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_pca_with_rr_overlay(segments, rr_intervals, n_components = 2, max_points = 11000, cmap = "viridis"):
+    """
+    Flatten segments and plot PCA projection colored by RR interval values
+    """
+    n_beats, window_size, n_channels = segments.shape
+    flat_segments = segments.reshape(n_beats, -1)
+
+    if n_beats > max_points:
+        np.random.seed(42)
+        idx = np.random.choice(n_beats, max_points, replace = False)
+        flat_segments = flat_segments[idx]
+        rr_intervals = np.array(rr_intervals)[idx]
+
+    # standardize
+    flat_segments = StandardScaler().fit_transform(flat_segments)
+
+    # PCA
+    pca = PCA(n_components = n_components)
+    pca_result = pca.fit_transform(flat_segments)
+
+    # Plot
+    plt.figure(figsize=(10,6))
+    scatter = plt.scatter(pca_result[:, 0], pca_result[:,1],
+                          c = rr_intervals,
+                          cmap = cmap,
+                          alpha = 0.7,
+                          s = 15)
+    cbar = plt.colorbar(scatter)
+    cbar.set_label("RR Interval (s)")
+    plt.title("PCA of Beat Shapes with RR INterval Overlay")
+    plt.xlabel("PC 1")
+    plt.ylabel("PC 2")
+    plt.grid(True)
     plt.tight_layout()
     plt.show()
 
