@@ -4,15 +4,15 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-from tf.keras.models import Model
-from tf.keras.layers import Input, Dense
-from tf.keras.optimizers import Adam
-from tf.keras.callbacks import EarlyStoppig
+import tensorflow
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
 
 # CLI ENTRY POINT
 @click.command()
-@click.option('--segment-path', default='data/processed/beat_segments.npy', help="Path to full segment array.")
+@click.option('--segments-path', default='data/processed/beat_segments.npy', help="Path to full segment array.")
 @click.option('--labels-path', default='data/processed/beats_dataset.csv', help='Path to beat labels')
 @click.option('--output-dir', default='models/autoencoder/', help='Where to save trained model and scalers.')
 def train_autoencoder_cli(segments_path, labels_path, output_dir):
@@ -31,7 +31,8 @@ def train_autoencoder_cli(segments_path, labels_path, output_dir):
     X_train, X_val = train_test_split(X_normal_flat, test_size=0.2, random_state=42)
 
     # Normalize
-    scaler = StandardScaler.fit(X_train)
+    scaler = StandardScaler()
+    scaler.fit(X_train)
     X_train_scaled = scaler.transform(X_train)
     X_val_scaled = scaler.transform(X_val)
 
@@ -50,7 +51,7 @@ def train_autoencoder_cli(segments_path, labels_path, output_dir):
     decoded = Dense(input_dim, activation='linear')(decoded)
 
     autoencoder = Model(inputs=input_layer, outputs=decoded)
-    autoencoder.compile(optimzer=Adam(1e-3), loss='mse')
+    autoencoder.compile(optimizer=Adam(1e-3), loss='mse')
 
     # Train
     autoencoder.fit(
