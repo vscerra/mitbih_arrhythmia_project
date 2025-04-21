@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import tensorflow
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.optimizers import Adam
@@ -17,7 +16,8 @@ from tensorflow.keras.callbacks import EarlyStopping
 @click.option('--output-dir', default='models/autoencoder/', help='Where to save trained model and scalers.')
 def train_autoencoder_cli(segments_path, labels_path, output_dir):
     os.makedirs(output_dir, exist_ok=True)
-
+    TF_ENABLE_ONEDNN_OPTS=0
+    
     # load data
     segments = np.load(segments_path)
     labels_df = pd.read_csv(labels_path)

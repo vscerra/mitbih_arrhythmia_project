@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 from scipy.fft import fft, fftfreq
 from sklearn.decomposition import PCA
@@ -28,6 +29,7 @@ def plot_ecg_segment(signal, annotations, fs, start_sec = 0, duration_sec = 10):
     plt.tight_layout()
     plt.show()
 
+
 def plot_frequency_spectrum(sig, fs, max_freq = 1000, channel = 0, title = "Frequency Spectrum"):
     """
     Plot the frequency spectrum of on ECG channel to inspect powerline noise artifacts
@@ -47,6 +49,7 @@ def plot_frequency_spectrum(sig, fs, max_freq = 1000, channel = 0, title = "Freq
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
 
 def plot_label_distribution(label_counts, title = "Beat Annotation Frequencies"):
     """
@@ -204,3 +207,25 @@ def plot_pca_with_rr_overlay(segments, rr_intervals, n_components = 2, max_point
     plt.tight_layout()
     plt.show()
 
+
+def plot_recon_error_dist(recon_error, y_true, best_thresh):
+    plt.figure(figsize = (10, 6))
+    sns.histplot(recon_error[y_true == 0], bins = 50, color = 'green', label = 'Normal', stat = 'density')
+    sns.histplot(recon_error[y_true == 1], bins = 50, color = 'orange', label = 'Abnormal', stat='density')
+    plt.axvline(best_thresh, color = 'black', linestyle = '--', label=f'Best Threshold = {best_thresh: .4f}')
+    plt.title("Reconstruction Error Distribution")
+    plt.xlabel("MSE")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_PR(precision, recall):
+    plt.figure(figsize = (10,6))
+    plt.plot(recall, precision, marker = '.')
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title("Precision-Recall Curve")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()

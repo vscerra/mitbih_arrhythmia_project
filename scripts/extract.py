@@ -31,3 +31,40 @@ def extract_beat_level_info(record_id, data_path = "data/raw", fs_override = Non
         "rr_intervals": rr_intervals,
         "sample_indices": indices
     }
+
+
+def build_beat_sequences(segments, labels_df, sequence_length=5):
+    """
+    Construct sequences of beats ordered by record and sample index.
+    Returns: X (sequence windows), y (center-beat label)
+    """
+    sequences = []
+    targets = []
+    abnormal_labels = {"A", "V", "~", "|", "Q", "+", "f"}
+    normal_labels = {"N", "/", "f"}
+    labels_df['label'] = labels_df['label'].apply(lambda x: "A" if x in abnormal_labels else "N").tolist()
+    labels_df = labels_df.copy()
+    
+
+    for rid in labels_df["record"].unique():
+        df_rec = labels_df[labels_df["record"] == rid].sort_values("sample_index")
+        indices = df_rec["sample_index"].values
+        labels = df_rec["label"].values
+
+        for i in range(len(indices) - sequence_length + 1):
+            seq_idx = indices[i:i + sequence_length]
+            if np.any(seq_idx >= len(segments)):
+                continue
+            seq_seg = segments[seq_idx]
+            label_seq = labels[i + sequence_length // 2] # label center beat
+
+            sequences.append(seq_seg)
+            targets.append(label_seq)
+
+    X_seq = np.array(sequences)
+    y_seq = np.array(targets)
+
+    # Flatten each beat: (sequence_len, 216, 2)
+    X_seq = X_seq.reshape((X_seq.shape[0], X_seq.shape[1], -1))
+    
+    return X_seq, y_seq
