@@ -200,7 +200,7 @@ def plot_pca_with_rr_overlay(segments, rr_intervals, n_components = 2, max_point
                           s = 15)
     cbar = plt.colorbar(scatter)
     cbar.set_label("RR Interval (s)")
-    plt.title("PCA of Beat Shapes with RR INterval Overlay")
+    plt.title("PCA of Beat Shapes with RR Interval Overlay")
     plt.xlabel("PC 1")
     plt.ylabel("PC 2")
     plt.grid(True)
@@ -221,6 +221,7 @@ def plot_recon_error_dist(recon_error, y_true, best_thresh):
 
 
 def plot_PR(precision, recall):
+
     plt.figure(figsize = (10,6))
     plt.plot(recall, precision, marker = '.')
     plt.xlabel("Recall")
@@ -229,3 +230,25 @@ def plot_PR(precision, recall):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+
+def plot_misclassified_example(index, signal_array, title):
+    """
+    Plot a beat segmetn or sequence by index
+    signal_array: array of shape (n_samples, time[, channels])
+    """
+    sample = signal_array[index]
+    plt.figure(figsize = (8, 3))
+    if sample.ndim == 2:
+        for ch in range(sample.shape[1]):
+            plt.plot(sample[:, ch], label = f"Channel {ch + 1}")
+    else: 
+        plt.plot(sample, label = "Signal")
+    plt.title(title)
+    plt.xlabel("Time")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    
